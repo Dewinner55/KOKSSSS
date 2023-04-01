@@ -1,0 +1,107 @@
+from django.contrib.auth import get_user_model
+
+from .models import CustomUser
+from django.utils.translation import gettext_lazy as _
+
+from rest_framework import serializers
+from rest_framework_simplejwt.tokens import RefreshToken, TokenError
+
+from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
+
+
+User = get_user_model()
+
+
+
+
+class RegistrationSerializer(serializers.ModelSerializer):
+    password2 = serializers.CharField(style={'input_type': 'password'}, write_only=True)
+
+    class Meta:
+        model = CustomUser
+        fields = ('username', 'email', 'password', 'password2')
+        extra_kwargs = {
+            'password': {'write_only': True},
+        }
+
+    def save(self):
+        user = CustomUser(
+            username=self.validated_data['username'],
+            email=self.validated_data['email'],
+        )
+        password = self.validated_data['password']
+        password2 = self.validated_data['password2']
+
+        if password != password2:
+            raise serializers.ValidationError({'password': 'Пароли должны совпадать.'})
+        user.create_activation_code()
+        user.set_password(password)
+        user.save()
+        return user
+
+
+class ActivationSerializer(serializers.Serializer):
+    code = serializers.CharField(required=True, max_length=255)
+    default_error_messages = {
+        'bad_code': _('Link is expired or invalid!')
+    }
+
+    def validate(self, attrs):
+        self.code = attrs['code']
+        return attrs
+
+    def save(self, **kwargs):
+        try:
+            user = CustomUser.objects.get(activation_code=self.code)
+            user.is_active = True
+            user.activation_code = ''
+            user.save()
+        except CustomUser.DoesNotExist:
+            self.fail('bad_code')
+
+
+
+class UserSerializer(serializers.ModelSerializer):
+    ratings = serializers.StringRelatedField(source='apartmentsrating_set', many=True)
+    favorites = serializers.StringRelatedField(source='favorites_set', many=True)
+
+
+    class Meta:
+        model = User
+        # fields = '__all__'
+        exclude = ('password',)
+
+
+class RefreshTokenSerializer(serializers.Serializer):
+    refresh = serializers.CharField()
+
+    default_error_messages = {
+        'bad_token': _('Token is invalid or expired'),
+        'already_blacklisted': _('Пользователь уже вышел из системы')
+    }
+
+    def validate(self, attrs):
+        self.token = attrs['refresh']
+        token_obj = RefreshToken(self.token)
+        user_id = token_obj.payload.get('user_id')
+        try:
+            user = get_user_model().objects.get(id=user_id)
+            attrs['user'] = user
+        except get_user_model().DoesNotExist:
+            self.fail('bad_token')
+        return attrs
+
+    def save(self, **kwargs):
+        try:
+            token = RefreshToken(self.token)
+            outstanding_token = OutstandingToken.objects.get(token=token)
+
+            if BlacklistedToken.objects.filter(token=outstanding_token).exists():
+                self.fail('already_blacklisted')
+
+            blacklisted_token = BlacklistedToken(token=outstanding_token)
+            blacklisted_token.save()
+        except TokenError:
+            self.fail('bad_token')
+        except OutstandingToken.DoesNotExist:
+            self.fail('bad_token')

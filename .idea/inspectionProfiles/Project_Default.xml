@@ -1,0 +1,21 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="PyUnresolvedReferencesInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredIdentifiers">
+        <list>
+          <option value="groups.models.Student.objects" />
+          <option value="main.models.Task.objects" />
+          <option value="main.models.Task.object" />
+          <option value="social_network_app.models.User.objects" />
+          <option value="category.models.Category.objects" />
+          <option value="post.models.Post.objects" />
+          <option value="comment.models.Comments.objects" />
+          <option value="app.product.models.Product.objects" />
+          <option value="app.product.models.Продукты.objects" />
+          <option value="rest_framework.authtoken.models.Token.objects" />
+        </list>
+      </option>
+    </inspection_tool>
+  </profile>
+</component>

@@ -1,0 +1,18 @@
+django
+psycopg2-binary
+djangorestframework
+pillow
+drf-yasg
+djangorestframework_simplejwt
+django-ckeditor
+python-decouple
+pyJWT
+redis
+celery
+django_filter
+django-allauth
+django-templated-mail
+django-cors-headers
+django-multiselectfield
+sudo apt-get install nginx
+gunicorn
