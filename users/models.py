@@ -1,6 +1,13 @@
+
+
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+
+from django.utils.datetime_safe import datetime
 from django.utils.translation import gettext_lazy as _
+
+from datetime import timedelta
+from django.utils import timezone
 
 
 
@@ -14,11 +21,11 @@ class CustomUser(AbstractUser):
 
     activation_code = models.CharField(max_length=255, blank=True)
 
-    email = models.EmailField(_("email address"), unique=False)
+    email = models.EmailField(_("email address"), unique=True)
 
     is_active = models.BooleanField(
         _("active"),
-        default=True,
+        default=False,
         help_text=_(
             "Designates whether this user should be treated as active. "
             "Unselect this instead of deleting accounts."
@@ -41,4 +48,11 @@ class CustomUser(AbstractUser):
         print("CREATE ACT CODE=>", code)
         self.activation_code = code
 
+class PasswordResetToken(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    token = models.CharField(max_length=255, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
+    def is_expired(self):
+        expiration_time = timedelta(hours=48)
+        return timezone.now() > self.created_at + expiration_time

@@ -1,1 +1,4 @@
 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
+hostel_9
+celery -A ABC worker -l info
+redis-server

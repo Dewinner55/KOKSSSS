@@ -1,9 +1,6 @@
 from django.db import models
-
 from users.models import CustomUser
-
 from rest_framework.permissions import BasePermission, SAFE_METHODS
-
 from multiselectfield import MultiSelectField
 
 

@@ -1,13 +1,10 @@
 from django.db.models import Avg
 from rest_framework import serializers
 from rest_framework.pagination import PageNumberPagination
-
 from comment.models import Comment
 from users.models import CustomUser
 from .models import Apartment
 
-
-from django.core.exceptions import ValidationError
 
 class CommentSerializer(serializers.ModelSerializer):
     user = serializers.SlugRelatedField(slug_field='username', read_only=True)
@@ -21,9 +18,6 @@ class CommentSerializer(serializers.ModelSerializer):
 class ApartmentSerializer(serializers.ModelSerializer):
     average_rating = serializers.SerializerMethodField()
     user = serializers.SlugRelatedField(slug_field='username', queryset=CustomUser.objects.all())
-    # images = serializers.ImageField(max_length=None, use_url=True)
-    # id = read_only_fields()
-    # user = serializers.CharField(max_length=200)
     comments = CommentSerializer(source='comment_set', many=True, read_only=True)
 
     class Meta:

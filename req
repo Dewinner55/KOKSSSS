@@ -23,3 +23,4 @@ redis-cli ping
 redis
 redis-server
 django-sendgrid-v5
+python-dotenv

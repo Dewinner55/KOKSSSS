@@ -3,19 +3,10 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter
 from rest_framework.response import Response
 from rest_framework import generics, status
-
-# from users.models import CustomUser
-from .models import Apartment, ApartmentPermission
+from .models import Apartment
 from .serializers import ApartmentSerializer, MyPagination
-
-from drf_yasg.utils import swagger_auto_schema
-from drf_yasg import openapi
-
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
-
-from django.views.decorators.cache import cache_page
-
 from .tasks import send_email_task
 
 

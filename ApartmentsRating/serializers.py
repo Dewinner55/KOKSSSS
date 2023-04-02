@@ -1,6 +1,4 @@
 from rest_framework import serializers
-
-from Apartment.models import Apartment
 from users.models import CustomUser
 from .models import ApartmentsRating
 

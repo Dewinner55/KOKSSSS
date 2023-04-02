@@ -8,6 +8,8 @@ from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 
 from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
 
+from .send_mail import atcviatetrue
+
 
 User = get_user_model()
 
@@ -56,6 +58,7 @@ class ActivationSerializer(serializers.Serializer):
             user.is_active = True
             user.activation_code = ''
             user.save()
+            atcviatetrue(user.email)
         except CustomUser.DoesNotExist:
             self.fail('bad_code')
 
@@ -105,3 +108,14 @@ class RefreshTokenSerializer(serializers.Serializer):
             self.fail('bad_token')
         except OutstandingToken.DoesNotExist:
             self.fail('bad_token')
+
+class ResendConfirmationCodeSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
+
+class PasswordResetRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+class PasswordResetSerializer(serializers.Serializer):
+    token = serializers.CharField()
+    password = serializers.CharField(style={'input_type': 'password'})
+    password2 = serializers.CharField(style={'input_type': 'password'})

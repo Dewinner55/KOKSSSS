@@ -1,3 +1,5 @@
+import uuid
+
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import permissions
 
@@ -8,8 +10,9 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 
 import users.models
 from Apartment.serializers import MyPagination
+from rest_framework.exceptions import ValidationError
 from users import serializers
-from .send_mail import send_confirmation_email
+from .send_mail import send_confirmation_email, send_password_reset_email
 
 from django.contrib.auth import get_user_model
 
@@ -28,6 +31,15 @@ from .serializers import RefreshTokenSerializer
 
 from rest_framework.filters import SearchFilter
 
+from .models import PasswordResetToken
+from .models import CustomUser
+
+from django.shortcuts import get_object_or_404
+from .serializers import ResendConfirmationCodeSerializer
+
+from .tasks import send_email_task
+
+
 User = get_user_model()
 
 class RegistrationView(APIView):
@@ -35,20 +47,19 @@ class RegistrationView(APIView):
 
     permission_classes = (permissions.AllowAny,)
 
-    @cache_page(60 * 5)  # кэш на 5 минут
     def post(self, request):
         serializer = serializers.RegistrationSerializer(
             data=request.data
         )
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
-        print("USER ACT VALID=>", user.activation_code)
         if user:
             try:
                 send_confirmation_email(user.email, user.activation_code)
             except User.DoesNotExist:
-                return Response({'msg': 'Registered, but troubles with email!', 'data': serializer.data}, status=201)
+                return Response({'Сообщение': 'Некие проблемы с почтой!', 'data': serializer.data}, status=201)
         return Response(serializer.data, status=201)
+
 
 class ActivationView(GenericAPIView):
     pagination_class = MyPagination
@@ -56,13 +67,27 @@ class ActivationView(GenericAPIView):
     permission_classes = (permissions.AllowAny,)
     serializer_class = serializers.ActivationSerializer
 
-    @cache_page(60 * 5)  # кэш на 5 минут
     def post(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response('Successfully activated!', status=200)
+        return Response('Ваш аккаунт успешно активирован!', status=200)
 
+
+class ResendConfirmationCodeView(APIView):
+    def post(self, request):
+        serializer = ResendConfirmationCodeSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        email = request.data.get('email')
+        user = get_object_or_404(CustomUser, email=email)
+
+        if user.is_active:
+            return Response({'Ошибка': 'Пользователь уже активирован'}, status=status.HTTP_400_BAD_REQUEST)
+
+        send_confirmation_email(user.email, user.activation_code)
+        return Response({'Сообщение': 'Код активации отправлен.'}, status=status.HTTP_200_OK)
 
 class LoginView(TokenObtainPairView):
     pagination_class = MyPagination
@@ -92,7 +117,6 @@ class LogoutView(generics.GenericAPIView):
     serializer_class = RefreshTokenSerializer
     # permission_classes = (permissions.IsAuthenticated, )
 
-    @cache_page(60 * 5)  # кэш на 5 минут
     def post(self, request, *args):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
@@ -118,3 +142,55 @@ class MyView(APIView):
         logger.error('Error message')
         logger.critical('Critical message')
         return Response({'message': 'Hello, world!'})
+
+
+class PasswordResetRequestView(APIView):
+    permission_classes = (permissions.AllowAny,)
+
+    def post(self, request):
+        serializer = serializers.PasswordResetRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data['email']
+
+        try:
+            user = CustomUser.objects.get(email=email)
+        except CustomUser.DoesNotExist:
+            return Response({'Сообщение': 'Пользователь с указанным адресом электронной почты не найден.'}, status=status.HTTP_404_NOT_FOUND)
+
+        reset_token = str(uuid.uuid4())
+        PasswordResetToken.objects.create(user=user, token=reset_token)
+
+        send_password_reset_email(user.email, reset_token)
+
+        return Response({'Сообщение': 'Письмо со ссылкой для сброса пароля отправлено.'}, status=status.HTTP_200_OK)
+
+
+class PasswordResetView(APIView):
+    permission_classes = (permissions.AllowAny,)
+
+    def post(self, request):
+        serializer = serializers.PasswordResetSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        token = serializer.validated_data['token']
+        password = serializer.validated_data['password']
+        password2 = serializer.validated_data['password2']
+
+        if password != password2:
+            return Response({'password': 'Пароли должны совпадать.'})
+
+        try:
+            reset_token = PasswordResetToken.objects.get(token=token)
+        except PasswordResetToken.DoesNotExist:
+            return Response({'Сообщение': 'Недействительный токен сброса пароля.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if reset_token.is_expired():
+            return Response({'Сообщение': 'Токен сброса пароля истек.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = reset_token.user
+        user.set_password(password)
+        user.save()
+
+        reset_token.delete()
+
+        return Response({'Сообщение': 'Пароль успешно сброшен и обновлен.'}, status=status.HTTP_200_OK)

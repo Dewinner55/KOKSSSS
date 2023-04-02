@@ -1,20 +1,13 @@
 from django.http import Http404
-from rest_framework.filters import SearchFilter
-from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-
-from Apartment.models import Apartment
 from Apartment.serializers import MyPagination
 from users.models import CustomUser
 from .models import ApartmentsRating
 from .serializers import RatingSerializer
 
-from django.views.decorators.cache import cache_page
-
-from rest_framework import generics
 
 
 class ApartmentsRatingList(APIView):
@@ -47,7 +40,6 @@ class ApartmentsRatingList(APIView):
                     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
                 except CustomUser.DoesNotExist:
                     return Response({'error': 'Пользователь с таким username не найден.'}, status=status.HTTP_404_NOT_FOUND)
-
             return Response({'error': 'Необходимо указать apartment_id и rating.'},
                             status=status.HTTP_400_BAD_REQUEST)
 
