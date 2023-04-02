@@ -14,15 +14,3 @@ class RatingSerializer(serializers.ModelSerializer):
     class Meta:
         model = ApartmentsRating
         fields = ('id', 'apartment', 'user', 'rating', 'created_at', 'apartment_id')
-
-    # def create(self, validated_data):
-    #     apartment_id = validated_data.pop('apartment', None)
-    #     if apartment_id is not None:
-    #         validated_data['apartment'] = Apartment.objects.get(id=apartment_id)
-    #     return super().create(validated_data)
-    #
-    # def update(self, instance, validated_data):
-    #     apartment_id = validated_data.pop('apartment', None)
-    #     if apartment_id is not None:
-    #         validated_data['apartment'] = Apartment.objects.get(id=apartment_id)
-    #     return super().update(instance, validated_data)

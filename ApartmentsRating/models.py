@@ -11,6 +11,7 @@ class ApartmentsRating(models.Model):
     rating = models.FloatField(verbose_name='оценка', help_text="Введите рейтинг от 1.0 до 5.0, например, 3.5")
 
 
+
     class Meta:
         verbose_name = 'Оценка квартиры'
         verbose_name_plural = 'Оценки квартир'

@@ -1,10 +1,13 @@
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics, status
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from Apartment.models import Apartment
+from Apartment.serializers import MyPagination
 from .models import Favorites
 from .serializers import FavoritesSerializer
 
@@ -12,11 +15,20 @@ from django.views.decorators.cache import cache_page
 
 
 class FavoritesList(generics.ListCreateAPIView):
-    queryset = Favorites.objects.all()
+
+    queryset = Favorites.objects.all().order_by('id')
     serializer_class = FavoritesSerializer
     permission_classes = [IsAuthenticated]
 
-    @cache_page(60 * 5)  # кэш на 5 минут
+    pagination_class = MyPagination
+
+    filter_backends = [SearchFilter, DjangoFilterBackend]
+    search_fields = ['user__username', 'favorites']
+    filterset_fields = {
+        'user__username': ['exact'],  # фильтр для user__username
+    }
+
+
     def post(self, request, *args, **kwargs):
         data = request.data.copy()
         data['user'] = request.user.username
@@ -34,12 +46,15 @@ class FavoritesList(generics.ListCreateAPIView):
         return Response(FavoritesSerializer(favorites).data, status=status.HTTP_201_CREATED, headers=headers)
 
 
+
 class FavoritesDetail(generics.RetrieveUpdateDestroyAPIView):
+    pagination_class = MyPagination
+
     queryset = Favorites.objects.all()
     serializer_class = FavoritesSerializer
     permission_classes = [IsAuthenticated]
 
-    @cache_page(60 * 5)  # кэш на 5 минут
+
     def delete(self, request, *args, **kwargs):
         favorite = self.get_object()
         user = request.user

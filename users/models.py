@@ -30,7 +30,7 @@ class CustomUser(AbstractUser):
     class Meta:
         verbose_name = _("Пользователь")
         verbose_name_plural = _("Пользователи")
-        # abstract = False
+
 
     def __str__(self):
         return f"{self.id} {self.username} {self.email}"
@@ -40,21 +40,5 @@ class CustomUser(AbstractUser):
         code = str(uuid.uuid4())
         print("CREATE ACT CODE=>", code)
         self.activation_code = code
-
-    # class Meta(AbstractUser.Meta):
-    #     swappable = "AUTH_USER_MODEL"
-
-
-# class EmailConfirmation(models.Model):
-#     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
-#     token = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-
-# class RevokedToken(models.Model):
-#     user = models.ForeignKey(CustomUser, verbose_name='Токен пользователя',on_delete=models.CASCADE, null=True)
-#     token = models.TextField(verbose_name='Токен', unique=True)
-#     timestamp = models.DateTimeField(verbose_name='Время создания Токена', auto_now_add=True, null=True)
-#
-#     def __str__(self):
-#         return f"{self.user}: {self.token}"
 
 

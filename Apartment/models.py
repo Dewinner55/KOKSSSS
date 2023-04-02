@@ -39,17 +39,6 @@ class Apartment(models.Model):
     AC = 'ac'
     BEDDING = 'bedding'
 
-    # COMFORT_CHOICES = [
-    #     (WIFI, 'Wi-Fi'),
-    #     (SHOWER, 'Душевая кабина'),
-    #     (DOORPHONE, 'Домофон'),
-    #     (PARKING, 'Парковка'),
-    #     (TV, 'Телевизор'),
-    #     (APPLIANCES, 'Бытовая техника'),
-    #     (AC, 'Кондиционер'),
-    #     (BEDDING, 'Постельное белье'),
-    # ]
-
     COMFORT_CHOICES = [('wi-fi', 'Wi-Fi'),
                        ('shower', 'Душевая кабина'),
                        ('doorphone', 'Домофон'),
@@ -66,11 +55,12 @@ class Apartment(models.Model):
     zip_code = models.CharField(verbose_name='Почтовый индекс', help_text='Необязательно поле для заполнения',
                                 max_length=20, blank=True)
     id = models.AutoField(primary_key=True)
+    recommend = models.BooleanField(verbose_name='Рекомендации', default=False)
 
     class Meta:
         verbose_name = 'Квартира'
         verbose_name_plural = 'Квартиры'
 
     def __str__(self):
-        return f"{self.street}"
+        return f"{self.id} {self.street}"
 

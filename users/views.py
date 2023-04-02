@@ -1,4 +1,4 @@
-
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import permissions
 
 from rest_framework.generics import GenericAPIView, ListAPIView
@@ -7,6 +7,7 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 import users.models
+from Apartment.serializers import MyPagination
 from users import serializers
 from .send_mail import send_confirmation_email
 
@@ -25,11 +26,13 @@ import logging
 from django.views.decorators.cache import cache_page
 from .serializers import RefreshTokenSerializer
 
-
+from rest_framework.filters import SearchFilter
 
 User = get_user_model()
 
 class RegistrationView(APIView):
+    pagination_class = MyPagination
+
     permission_classes = (permissions.AllowAny,)
 
     @cache_page(60 * 5)  # кэш на 5 минут
@@ -48,6 +51,8 @@ class RegistrationView(APIView):
         return Response(serializer.data, status=201)
 
 class ActivationView(GenericAPIView):
+    pagination_class = MyPagination
+
     permission_classes = (permissions.AllowAny,)
     serializer_class = serializers.ActivationSerializer
 
@@ -60,17 +65,30 @@ class ActivationView(GenericAPIView):
 
 
 class LoginView(TokenObtainPairView):
+    pagination_class = MyPagination
+
     permission_classes = (permissions.AllowAny,)
 
 
 class UserListApiView(ListAPIView):
-    queryset = User.objects.all()
+    pagination_class = MyPagination
+
+
+    queryset = User.objects.all().order_by('id')
     serializer_class = serializers.UserSerializer
 
+    filter_backends = [SearchFilter, DjangoFilterBackend]
+    search_fields = ['username', 'email']
+    filterset_fields = {
+        'username': ['exact'],  # фильтр для user__username
+    }
 
 
 
 class LogoutView(generics.GenericAPIView):
+
+    pagination_class = MyPagination
+
     serializer_class = RefreshTokenSerializer
     # permission_classes = (permissions.IsAuthenticated, )
 
@@ -89,6 +107,9 @@ logger = logging.getLogger(__name__)
 
 
 class MyView(APIView):
+
+    pagination_class = MyPagination
+
     @cache_page(60 * 5)  # кэш на 5 минут
     def get(self, request):
         logger.debug('Debug message')

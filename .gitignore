@@ -1,1 +1,80 @@
-code.txt
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Virtual environments
+venv/
+env/
+.env
+
+
+# Local development settings
+*.sqlite3
+*.pyc
+*.bak
+*.swp
+*.log
+*.pyo
+
+# Secret keys
+.secret_key
+*.key
+*.pem
+
+# IDE files
+.idea/
+.vscode/
+
+# Compiled Python files
+*.pyc
+
+# Compiled C extensions
+*.so
+
+# Compiled object files
+*.o
+
+# Log files
+*.log
+
+# Other generated files
+*.swp
+
+# Media files
+media/
+
+# Static files
+static/
+
+# Local configuration
+local_settings.py
+
+# Ignore API documentation
+docs/build/
+
+# Ignore package files
+*.egg
+
+# Ignore user files
+*.bak
+*.config
+*.db
+*.ini
+*.lock
+*.pid
+*.tmp
+
+# Ignore migrations
+*/migrations/*.py
+*/migrations/*.bak
+*/migrations/*.swp
+*/migrations/__pycache__/

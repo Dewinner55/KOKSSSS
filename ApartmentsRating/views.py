@@ -1,4 +1,5 @@
 from django.http import Http404
+from rest_framework.filters import SearchFilter
 from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
@@ -6,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from Apartment.models import Apartment
+from Apartment.serializers import MyPagination
 from users.models import CustomUser
 from .models import ApartmentsRating
 from .serializers import RatingSerializer
@@ -16,15 +18,17 @@ from rest_framework import generics
 
 
 class ApartmentsRatingList(APIView):
+    pagination_class = MyPagination
+
     permission_classes = [IsAuthenticated]
 
-    @cache_page(60 * 5)  # кэш на 5 минут
+
     def get(self, request):
         apartments_ratings = ApartmentsRating.objects.all()
         serializer = RatingSerializer(apartments_ratings, many=True)
         return Response(serializer.data)
 
-    @cache_page(60 * 5)  # кэш на 5 минут
+
     def post(self, request):
             apartment_id = request.data.get('apartment_id')
             rating_value = request.data.get('rating')
@@ -49,22 +53,24 @@ class ApartmentsRatingList(APIView):
 
 
 class ApartmentsRatingDetail(APIView):
+    pagination_class = MyPagination
+
     permission_classes = [IsAuthenticated]
 
-    @cache_page(60 * 5)  # кэш на 5 минут
+
     def get_object(self, pk):
         try:
             return ApartmentsRating.objects.get(pk=pk)
         except ApartmentsRating.DoesNotExist:
             raise Http404
 
-    @cache_page(60 * 5)  # кэш на 5 минут
+
     def get(self, request, pk):
         apartments_rating = self.get_object(pk)
         serializer = RatingSerializer(apartments_rating)
         return Response(serializer.data)
 
-    @cache_page(60 * 5)  # кэш на 5 минут
+
     def put(self, request, pk):
         apartments_rating = self.get_object(pk)
 
@@ -79,7 +85,7 @@ class ApartmentsRatingDetail(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    @cache_page(60 * 5)  # кэш на 5 минут
+
     def delete(self, request, pk):
         apartments_rating = self.get_object(pk)
 

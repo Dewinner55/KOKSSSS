@@ -1,10 +1,12 @@
+
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import SearchFilter
 from rest_framework.response import Response
 from rest_framework import generics, status
 
 # from users.models import CustomUser
 from .models import Apartment, ApartmentPermission
-from .serializers import ApartmentSerializer
-
+from .serializers import ApartmentSerializer, MyPagination
 
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
@@ -14,29 +16,33 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 from django.views.decorators.cache import cache_page
 
+from .tasks import send_email_task
+
+
+
 class ApartmentList(generics.ListCreateAPIView):
-    queryset = Apartment.objects.all()
+    pagination_class = MyPagination
+
+    queryset = Apartment.objects.all().order_by('-recommend', 'id')
     serializer_class = ApartmentSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
-    #
-    @cache_page(60 * 5)  # кэш на 5 минут
-    @swagger_auto_schema(request_body=openapi.Schema(
-        type=openapi.TYPE_OBJECT,
-        properties={
-            'street': openapi.Schema(type=openapi.TYPE_STRING, description='Название улицы'),
-            'city': openapi.Schema(type=openapi.TYPE_STRING, description='Название города'),
-            'state': openapi.Schema(type=openapi.TYPE_STRING, description='Название округа'),
-            'rooms': openapi.Schema(type=openapi.TYPE_INTEGER, description='Количество комнат'),
-            'number_of_beds': openapi.Schema(type=openapi.TYPE_INTEGER, description='Количество спальных мест'),
-            'floor': openapi.Schema(type=openapi.TYPE_INTEGER, description='Этаж'),
-            'category': openapi.Schema(type=openapi.TYPE_STRING, description='Категория жилья'),
-            'price': openapi.Schema(type=openapi.TYPE_NUMBER, description='Цена'),
-            # 'comfort': openapi.Schema(type=openapi.TYPE_ARRAY, items=openapi.Items(type=openapi.TYPE_STRING), description='Список удобств'),
-            'description': openapi.Schema(type=openapi.TYPE_STRING, description='Описание'),
-            'zip_code': openapi.Schema(type=openapi.TYPE_STRING, description='Почтовый индекс'),
-        }
-    ))
-    @cache_page(60 * 5)  # кэш на 5 минут
+
+    filter_backends = [SearchFilter, DjangoFilterBackend]
+    search_fields = ['user__username', 'street', 'city', 'state', 'rooms', 'number_of_beds', 'floor', 'category', 'price', 'description' ]
+    # filterset_fields = {
+    #     'user__username': ['exact'],  # фильтр для user__username
+    #     'street': ['exact', 'icontains'],
+    #     'city': ['exact', 'icontains'],
+    #     'state': ['exact', 'icontains'],
+    #     'rooms': ['exact', 'gte', 'lte'],
+    #     'number_of_beds': ['exact', 'gte', 'lte'],
+    #     'floor': ['exact', 'gte', 'lte'],
+    #     'category': ['exact', 'icontains'],
+    #     'price': ['exact', 'gte', 'lte'],
+    #     'description': ['exact', 'icontains'],
+    #     'zip_code': ['exact', 'icontains']
+    # }
+
     def post(self, request, *args, **kwargs):
         data = request.data.copy()
         data['user'] = request.user.username
@@ -44,15 +50,24 @@ class ApartmentList(generics.ListCreateAPIView):
         serializer.is_valid(raise_exception=True)
         apartment = serializer.save()
         headers = self.get_success_headers(serializer.data)
+
+        subject = "Новая квартира добавлена"
+        message = f"Новая квартира была добавлена: {apartment.street}, {apartment.city}"
+        from_email = "evelbrus55@gmail.com"
+        recipient_list = [request.user.email]
+
+        send_email_task.delay(subject, message, from_email, recipient_list)
+
         return Response(ApartmentSerializer(apartment).data, status=status.HTTP_201_CREATED, headers=headers)
 
 
 class ApartmentDetail(generics.RetrieveUpdateDestroyAPIView):
+    pagination_class = MyPagination
+
     queryset = Apartment.objects.all()
     serializer_class = ApartmentSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
 
-    @cache_page(60 * 5)  # кэш на 5 минут
     def put(self, request, *args, **kwargs):
         apartment = self.get_object()
         user = request.user
@@ -64,7 +79,6 @@ class ApartmentDetail(generics.RetrieveUpdateDestroyAPIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         raise PermissionDenied("Вы не являетесь автором этой квартиры")
 
-    @cache_page(60 * 5)  # кэш на 5 минут
     def delete(self, request, *args, **kwargs):
         apartment = self.get_object()
         user = request.user

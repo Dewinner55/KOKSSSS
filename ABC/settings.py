@@ -29,7 +29,7 @@ SECRET_KEY = config('DJ_SECRET')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', cast=bool)
 
-ALLOWED_HOSTS = ['127.0.0.1']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '10.182.0.2', '34.125.210.46']
 
 
 # Application definition
@@ -48,11 +48,15 @@ INSTALLED_APPS = [
     'corsheaders',
     'multiselectfield',
     'drf_yasg',
+    'django_celery_results',
     #MY_APPS
     'users',
     'ApartmentsRating',
     'Apartment',
     'favorites',
+    'booking',
+    'comment',
+    'like',
 
 ]
 
@@ -242,3 +246,17 @@ CACHES = {
         }
     }
 }
+
+CELERY_BROKER_URL = 'redis://localhost:6379'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379'
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TASK_SERIALIZER = 'json'
+
+import redis
+
+REDIS_HOST = 'localhost'
+REDIS_PORT = 6379
+REDIS_DB = 0
+
+redis_client = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB)
