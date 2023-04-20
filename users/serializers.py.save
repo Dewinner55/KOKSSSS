@@ -12,6 +12,8 @@ from .send_mail import atcviatetrue
 
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
+from rest_framework import permissions
+
 User = get_user_model()
 
 

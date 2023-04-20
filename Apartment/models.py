@@ -53,6 +53,7 @@ class Apartment(models.Model):
                                 max_length=20, blank=True)
     id = models.AutoField(primary_key=True)
     recommend = models.BooleanField(verbose_name='Рекомендации', default=False)
+    is_author = models.BooleanField(verbose_name='Автор', default=False, blank=True)
 
     class Meta:
         verbose_name = 'Квартира'

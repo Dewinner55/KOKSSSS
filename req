@@ -6,7 +6,8 @@ drf-yasg
 djangorestframework_simplejwt
 django-ckeditor
 python-decouple
-pyJWT
+#pyJWT
+PyJWT==v1.7.1
 redis
 celery
 django_filter
@@ -14,12 +15,11 @@ django-allauth
 django-templated-mail
 django-cors-headers
 django-multiselectfield
-sudo apt-get install nginx
 gunicorn
 django-celery-results
 django-celery-beat
 celery
-redis-cli ping
+
 redis
 redis-server
 django-sendgrid-v5

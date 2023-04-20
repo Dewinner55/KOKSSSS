@@ -1,7 +1,7 @@
 from rest_framework import generics, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
-
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from .models import Comment
 from .serializers import CommentSerializer
 
@@ -9,7 +9,8 @@ from .serializers import CommentSerializer
 class CommentListCreateAPIView(generics.ListCreateAPIView):
     # queryset = Comment.objects.all()
     serializer_class = CommentSerializer
-    permission_classes = [IsAuthenticated]
+   # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
         queryset = Comment.objects.all()

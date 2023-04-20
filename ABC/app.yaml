@@ -1,0 +1,12 @@
+runtime: python36
+
+entrypoint: gunicorn -b :$PORT main:app
+
+env_variables:
+  VARIABLE_NAME: "value"
+
+handlers:
+- url: /.*
+  script: auto
+  secure: always
+

@@ -1,0 +1,18 @@
+[0;1;32m●[0m nginx.service - A high performance web server and a reverse proxy server
+   Loaded: loaded (/lib/systemd/system/nginx.service; enabled; vendor preset: enabled)
+   Active: [0;1;32mactive (running)[0m since Wed 2023-04-12 09:55:31 UTC; 13min ago
+     Docs: man:nginx(8)
+  Process: 9032 ExecStop=/sbin/start-stop-daemon --quiet --stop --retry QUIT/5 --pidfile /run/nginx.pid (code=exited, status=0/SUCCESS)
+  Process: 9042 ExecStart=/usr/sbin/nginx -g daemon on; master_process on; (code=exited, status=0/SUCCESS)
+  Process: 9033 ExecStartPre=/usr/sbin/nginx -t -q -g daemon on; master_process on; (code=exited, status=0/SUCCESS)
+ Main PID: 9049 (nginx)
+    Tasks: 3 (limit: 4660)
+   CGroup: /system.slice/nginx.service
+           ├─9049 nginx: master process /usr/sbin/nginx -g daemon on; master_process on;
+           ├─9050 nginx: worker process
+           └─9051 nginx: worker process
+
+Apr 12 09:55:31 makethostel4 systemd[1]: Starting A high performance web server and a reverse proxy server...
+Apr 12 09:55:31 makethostel4 nginx[9033]: nginx: [warn] conflicting server name "34.88.174.223" on 0.0.0.0:80, ignored
+Apr 12 09:55:31 makethostel4 nginx[9042]: nginx: [warn] conflicting server name "34.88.174.223" on 0.0.0.0:80, ignored
+Apr 12 09:55:31 makethostel4 systemd[1]: Started A high performance web server and a reverse proxy server.

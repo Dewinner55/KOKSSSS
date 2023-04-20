@@ -5,13 +5,14 @@ from comment.models import Comment
 from users.models import CustomUser
 from .models import Apartment
 
+from rest_framework import permissions
 
 class CommentSerializer(serializers.ModelSerializer):
     user = serializers.SlugRelatedField(slug_field='username', read_only=True)
 
     class Meta:
         model = Comment
-        fields = ['id', 'user', 'text', 'created_at']
+        fields = ['user', 'text', 'created_at']
         read_only_fields = ['user', 'created_at']
         ref_name = 'ApartmentCommentSerializer'
 
@@ -38,8 +39,7 @@ class ApartmentSerializer(serializers.ModelSerializer):
                   'comfort',
                   'average_rating',
                   'comments',
-                  'is_author',
-                  'recommend',)
+			)
         extra_kwargs = {
             'street': {'required': True},
             'city': {'required': True},
@@ -52,8 +52,6 @@ class ApartmentSerializer(serializers.ModelSerializer):
             'description': {'required': False},
             'images': {'required': False},
             'zip_code': {'required': False},
-            'is_author': {'required': False},
-            'recommend': {'required': True},
         }
 
         read_only_fields = ['id', 'recommend', 'comment']
@@ -67,4 +65,9 @@ class MyPagination(PageNumberPagination):
     page_query_param = 'page'
 
 
-
+class IsAuthor(permissions.BasePermission):
+    """
+    Проверка на авторство
+    """
+    def has_object_permission(self, request, view, obj):
+        return obj.author == request.user

@@ -20,19 +20,19 @@ class ApartmentList(generics.ListCreateAPIView):
 
     filter_backends = [SearchFilter, DjangoFilterBackend]
     search_fields = ['user__username', 'street', 'city', 'state', 'rooms', 'number_of_beds', 'floor', 'category', 'price', 'description' ]
-    # filterset_fields = {
+    filterset_fields = {
     #     'user__username': ['exact'],  # фильтр для user__username
     #     'street': ['exact', 'icontains'],
-    #     'city': ['exact', 'icontains'],
-    #     'state': ['exact', 'icontains'],
-    #     'rooms': ['exact', 'gte', 'lte'],
-    #     'number_of_beds': ['exact', 'gte', 'lte'],
-    #     'floor': ['exact', 'gte', 'lte'],
+         'city': ['exact', 'icontains'],
+         'state': ['exact', 'icontains'],
+         'rooms': ['exact', 'gte', 'lte'],
+         'number_of_beds': ['exact', 'gte', 'lte'],
+         'floor': ['exact', 'gte', 'lte'],
     #     'category': ['exact', 'icontains'],
     #     'price': ['exact', 'gte', 'lte'],
     #     'description': ['exact', 'icontains'],
     #     'zip_code': ['exact', 'icontains']
-    # }
+     }
 
     def post(self, request, *args, **kwargs):
         data = request.data.copy()

@@ -27,7 +27,7 @@ import logging
 # from .serializers import LogoutSerializer
 
 from django.views.decorators.cache import cache_page
-from .serializers import RefreshTokenSerializer
+from .serializers import RefreshTokenSerializer, MyTokenObtainPairSerializer
 
 from rest_framework.filters import SearchFilter
 
@@ -113,7 +113,7 @@ class UserListApiView(ListAPIView):
 class LogoutView(generics.GenericAPIView):
 
     pagination_class = MyPagination
-
+    serializer_class = MyTokenObtainPairSerializer
     serializer_class = RefreshTokenSerializer
     # permission_classes = (permissions.IsAuthenticated, )
 
